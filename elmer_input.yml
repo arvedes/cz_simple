@@ -1,0 +1,16 @@
+# stuff that is not pre-defined in pyelmer
+TransientPhaseChange:
+  Equation: Transient Phase Change
+  Procedure: '"TransientPhaseChange" "TransientPhaseChange"'
+  Variable: '"PhaseSurface"'
+  Use Nodal Loads: Logical True
+  Triple Point Fixed: Logical True
+MeshUpdate:
+  Equation: Mesh Update
+  Linear System Solver: Iterative
+  Linear System Iterative Method: BiCGStab
+  Linear System Preconditioning: ILU1
+  Linear System Max Iterations: 10000
+  Linear System Convergence Tolerance: 1.0e-9
+  Linear System Residual Output: 1
+  Steady State Convergence Tolerance: 1.0e-6

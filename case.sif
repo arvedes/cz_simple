@@ -1,0 +1,209 @@
+Header
+  CHECK KEYWORDS "Warn"
+  Mesh DB "." "."
+End
+
+Simulation
+  Max Output Level = 4
+  Coordinate System = Axi Symmetric
+  Simulation Type = Transient
+  Steady State Max Iterations = 10
+  Output File = case.result
+  Output Intervals = 10
+  Timestep Sizes = 0.1
+  Timestep Intervals = 100
+  Timestepping Method = BDF
+  BDF Order = 1
+End
+
+Constants
+  Stefan Boltzmann = 5.6704e-08
+End
+
+! eqn_heat
+Equation 1
+  Active Solvers(2) = 1 3 
+End
+
+! eqn_phase
+Equation 2
+  Active Solvers(1) = 2 
+End
+
+
+! HeatSolver
+Solver 1
+  Equation = HeatSolver
+  Procedure = "HeatSolve" "HeatSolver"
+  Variable = "Temperature"
+  Variable Dofs = 1
+  Calculate Loads = True
+  Exec Solver = Always
+  Nonlinear System Convergence Tolerance = 1e-06
+  Nonlinear System Max Iterations = 1000
+  Nonlinear System Relaxation Factor = 0.7
+  Steady State Convergence Tolerance = 1e-06
+  Stabilize = True
+  Optimize Bandwidth = True
+  Linear System Solver = Iterative
+  Linear System Iterative Method = BiCGStab
+  Linear System Max Iterations = 1000
+  Linear System Preconditioning = ILU
+  Linear System Precondition Recompute = 1
+  Linear System Convergence Tolerance = 1e-08
+  Linear System Abort Not Converged = True
+  Linear System Residual Output = 1
+  Smart Heater Control After Tolerance = 0.0001
+End
+
+! TransientPhaseChange
+Solver 2
+  Equation = Transient Phase Change
+  Procedure = "TransientPhaseChange" "TransientPhaseChange"
+  Variable = "PhaseSurface"
+  Use Nodal Loads = Logical True
+  Triple Point Fixed = Logical True
+End
+
+! MeshUpdate
+Solver 3
+  Equation = Mesh Update
+  Linear System Solver = Iterative
+  Linear System Iterative Method = BiCGStab
+  Linear System Preconditioning = ILU1
+  Linear System Max Iterations = 10000
+  Linear System Convergence Tolerance = 1e-09
+  Linear System Residual Output = 1
+  Steady State Convergence Tolerance = 1e-06
+End
+
+! ResultOutputSolver
+Solver 4
+  Exec Solver = After timestep
+  Equation = ResultOutputSolver
+  Procedure = "ResultOutputSolve" "ResultOutputSolver"
+  VTU Format = True
+  Save Geometry Ids = Logical True
+End
+
+
+! tin_solid
+Material 1
+  Density = 7179.0
+  Electric Conductivity = 4380000
+  Emissivity = 0.064
+  Heat Capacity = 244.0
+  Heat Conductivity = 60.0
+  Relative Permeability = 1
+  Relative Permittivity = 1
+  Solid = Logical True
+  Melting Point = 505
+  Latent Heat = 59600
+End
+
+! tin_liquid
+Material 2
+  Density = 6980.0
+  Electric Conductivity = 2080000
+  Emissivity = 0.064
+  Heat Capacity = 252.7
+  Heat Conductivity = 29.0
+  Relative Permeability = 1
+  Relative Permittivity = 1
+  Liquid = Logical True
+End
+
+
+! melt
+Body 1
+  Target Bodies(1) = 1 
+  Equation = 1
+  Initial Condition = 1
+  Material = 2
+End
+
+! crystal
+Body 2
+  Target Bodies(1) = 2 
+  Equation = 1
+  Initial Condition = 2
+  Material = 1
+End
+
+! phase_if
+Body 3
+  Target Bodies(1) = 3 
+  Equation = 2
+  Initial Condition = 3
+  Material = 1
+End
+
+
+! bc_phase
+Boundary Condition 1
+  Target Boundaries(1) = 3 
+  Smart Heater Boundary = Logical True
+  Smart Heater Temperature = 505
+  Temperature = 505
+  Normal Target Body = 2
+  Mesh Update 1 = 0
+  Mesh Update 2 = Equals PhaseSurface
+  Body Id = Integer 3
+End
+
+! bc_melt_bt
+Boundary Condition 2
+  Target Boundaries(1) = 4 
+  Heat Flux BC = True
+  Heat Flux = 100
+  Mesh Update 1 = 0
+  Mesh Update 2 = 0
+  Smart Heater Control = Logical True
+End
+
+! bc_melt_other
+Boundary Condition 3
+  Target Boundaries(2) = 6 5 
+  Mesh Update 1 = 0
+  Mesh Update 2 = 0
+End
+
+! bc_crys_side
+Boundary Condition 4
+  Target Boundaries(1) = 8 
+  Mesh Update 1 = 0
+End
+
+! bc_crys_top
+Boundary Condition 5
+  Target Boundaries(1) = 7 
+  Temperature = 500
+  Mesh Update 1 = 0
+  Mesh Update 2 = Variable Time
+    real MATC "0.0006666666666666666*tx"
+End
+
+! bc_sim_ax
+Boundary Condition 6
+  Target Boundaries(1) = 9 
+  Mesh Update 1 = 0
+End
+
+
+
+! ic_melt
+Initial Condition 1
+  Temperature = 510
+End
+
+! ic_crys
+Initial Condition 2
+  Temperature = 500
+End
+
+! ic_phase
+Initial Condition 3
+  Temperature = 505
+  PhaseSurface = Real 0.0
+End
+
